@@ -18,6 +18,8 @@ const RETAIN_SHARE: usize = 16;
 const SPARE_SLOTS: usize = 2;
 const STEP_BYTES: usize = 1 << 20;
 const TRIM_MIN: usize = 2 * PAGE;
+const TRIM_CLASS: usize = (TRIM_MIN.trailing_zeros() - MIN_SHIFT) as usize * STEPS;
+const _: () = assert!(TRIM_MIN.is_power_of_two() && TRIM_MIN >= ARENA_MIN);
 const BASE_PAGES_MAX: usize = HUGE_PAGE / CHUNK_SLOTS;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -258,11 +260,7 @@ impl Arena {
     fn trim(&mut self, cap: usize) {
         let mut released = 0;
         for spare in [SPARE_SLOTS, 0] {
-            for class in self
-                .classes
-                .iter_mut()
-                .skip_while(|class| class.size < TRIM_MIN)
-            {
+            for class in self.classes.iter_mut().skip(TRIM_CLASS) {
                 let size = class.size;
                 while self.warm_bytes > cap
                     && class.warm.len() > spare

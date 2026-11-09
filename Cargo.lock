@@ -2372,7 +2372,7 @@ dependencies = [
 
 [[package]]
 name = "keep-server"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "clap",
  "foldhash 0.2.0",
