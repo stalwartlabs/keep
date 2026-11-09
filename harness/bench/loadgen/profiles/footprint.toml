@@ -1,0 +1,21 @@
+name = "footprint"
+description = "Memory per key: 10M 13 B keys, 8 B values, 1 day TTL; get and TTL-refreshing overwrite set 1:1, uniform"
+
+[[keyspace]]
+name = "kv"
+key_size = 13
+keys = 10000000
+value_size = 8
+ttl = "86400"
+popularity = "uniform"
+preload = "set"
+
+[[op]]
+kind = "get"
+keyspace = "kv"
+weight = 1
+
+[[op]]
+kind = "set"
+keyspace = "kv"
+weight = 1

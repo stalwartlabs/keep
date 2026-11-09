@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+printf 'rsync\t%s\n' "$*" >> "$FAKE_LOG"
+[ -t 0 ] || cat > /dev/null
+last=${!#}
+case "$last" in
+  *:*) ;;
+  *) case "${*: -2:1}" in *keep-bin.tgz) tar -czf "$last" -C "$FAKE_BIN" . ;; esac ;;
+esac
+exit 0

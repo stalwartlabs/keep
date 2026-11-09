@@ -1,0 +1,53 @@
+[package]
+name = "mock-stalwart"
+version = "1.0.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+all = ["redis", "nats", "kafka", "zenoh", "fluvio", "keep"]
+redis = ["dep:redis", "dep:deadpool"]
+nats = ["dep:async-nats"]
+kafka = ["dep:rdkafka"]
+zenoh = ["dep:zenoh"]
+fluvio = ["dep:fluvio", "dep:fluvio-future", "dep:async-trait", "dep:socket2"]
+keep = ["dep:keep-client"]
+
+[dependencies]
+async-channel = "2"
+base64 = "0.23"
+bytes = "1"
+clap = { version = "4.6", features = ["derive"] }
+foldhash = "0.2"
+futures = "0.3"
+hashify = "0.3"
+itoa = "1"
+hdrhistogram = { version = "7.6", default-features = false, features = ["serialization"] }
+libc = "0.2"
+rand = { version = "0.10", default-features = false, features = ["std"] }
+rand_distr = "0.6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+stalwart-workload = { path = "../workload" }
+keep-client = { path = "../../../clients/rust", optional = true }
+tokio = { version = "1.54", features = ["rt-multi-thread", "macros", "time", "sync"] }
+toml = "1"
+zstd = "0.14"
+redis = { version = "=1.8.1", features = ["tokio-comp", "cluster-async"], optional = true }
+deadpool = { version = "=0.13.1", features = ["managed", "rt_tokio_1"], optional = true }
+async-nats = { version = "=0.50.0", default-features = false, features = ["server_2_10", "server_2_11", "aws-lc-rs"], optional = true }
+rdkafka = { version = "=0.39.0", features = ["cmake-build"], optional = true }
+fluvio = { version = "=0.50.1", optional = true }
+fluvio-future = { version = "=0.8.3", features = ["net"], optional = true }
+async-trait = { version = "0.1", optional = true }
+socket2 = { version = "0.6", features = ["all"], optional = true }
+zenoh = { version = "=1.10.1", default-features = false, features = ["auth_pubkey", "transport_multilink", "transport_compression", "transport_quic", "transport_tcp", "transport_tls", "transport_udp"], optional = true }
+
+[dev-dependencies]
+flume = "0.12"
+
+[[bench]]
+name = "handoff"
+harness = false

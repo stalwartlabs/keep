@@ -1,0 +1,82 @@
+{
+  "track": "jepsen",
+  "regions": {
+    "main": {
+      "location": "REGION_MAIN",
+      "prefix": "10.40.0.0/16",
+      "ppg": false
+    }
+  },
+  "targets": {
+    "build": "ctl"
+  },
+  "vms": [
+    {
+      "name": "ctl",
+      "role": "control",
+      "region": "main",
+      "size": "Standard_D8as_v7",
+      "disk": 128,
+      "provision": [
+        "os-tuning",
+        "toolchain",
+        "jepsen-control"
+      ]
+    },
+    {
+      "name": "n1",
+      "role": "db",
+      "region": "main",
+      "size": "Standard_D4as_v7",
+      "disk": 64,
+      "provision": [
+        "os-tuning",
+        "jepsen-node"
+      ]
+    },
+    {
+      "name": "n2",
+      "role": "db",
+      "region": "main",
+      "size": "Standard_D4as_v7",
+      "disk": 64,
+      "provision": [
+        "os-tuning",
+        "jepsen-node"
+      ]
+    },
+    {
+      "name": "n3",
+      "role": "db",
+      "region": "main",
+      "size": "Standard_D4as_v7",
+      "disk": 64,
+      "provision": [
+        "os-tuning",
+        "jepsen-node"
+      ]
+    },
+    {
+      "name": "n4",
+      "role": "db",
+      "region": "main",
+      "size": "Standard_D4as_v7",
+      "disk": 64,
+      "provision": [
+        "os-tuning",
+        "jepsen-node"
+      ]
+    },
+    {
+      "name": "n5",
+      "role": "db",
+      "region": "main",
+      "size": "Standard_D4as_v7",
+      "disk": 64,
+      "provision": [
+        "os-tuning",
+        "jepsen-node"
+      ]
+    }
+  ]
+}

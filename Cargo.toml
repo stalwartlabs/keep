@@ -1,0 +1,22 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "clients/rust", "harness/bench/analysis", "harness/bench/loadgen", "harness/bench/mock-stalwart", "harness/bench/workload", "harness/jepsen/support", "harness/probe"]
+default-members = ["crates/*", "clients/rust", "harness/bench/analysis", "harness/bench/mock-stalwart", "harness/bench/workload", "harness/probe"]
+
+[workspace.package]
+edition = "2024"
+license = "AGPL-3.0-only OR LicenseRef-SEL"
+publish = false
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(keep_tests)", "cfg(keep_bench)", "cfg(keep_observe)", "cfg(loom)"] }
+
+[profile.release]
+debug = false
+strip = true
+codegen-units = 1
+lto = "fat"
+panic = "abort"
+
+[profile.bench]
+inherits = "release"

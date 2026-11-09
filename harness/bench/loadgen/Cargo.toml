@@ -1,0 +1,43 @@
+[package]
+name = "loadgen"
+version = "1.0.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+base64 = "0.23"
+clap = { version = "4.6", features = ["derive"] }
+hashify = "0.3"
+hdrhistogram = { version = "7.6", default-features = false, features = ["serialization"] }
+itoa = "1"
+keep-client = { path = "../../../clients/rust" }
+keep-proto = { path = "../../../crates/keep-proto" }
+libc = "0.2"
+memchr = "2"
+mio = { version = "1", features = ["os-poll", "net"] }
+rand = { version = "0.10", default-features = false, features = ["std"] }
+rand_distr = "0.6"
+rustls = { version = "0.23.46", default-features = false, features = ["std"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+stalwart-workload = { path = "../workload" }
+toml = "1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+io-uring = "0.7.15"
+
+[dev-dependencies]
+rcgen = { version = "0.14", default-features = false, features = ["aws_lc_rs", "pem"] }
+
+[[bin]]
+name = "loadgen"
+path = "src/bin/loadgen.rs"
+
+[[bin]]
+name = "nullserver"
+path = "src/bin/nullserver.rs"
+
+[[bench]]
+name = "hotpath"
+harness = false

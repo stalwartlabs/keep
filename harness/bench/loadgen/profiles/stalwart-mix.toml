@@ -1,0 +1,159 @@
+name = "stalwart-mix"
+description = "Small Stalwart KV mix: 70% incr with TTL, 10% get/exists, 8% try_lock, 8% unlock, 3% set, 1% renew"
+
+[[keyspace]]
+name = "rate_1s"
+key_size = 41
+keys = 100000
+ttl = "window:1"
+value_size = 8
+
+[[keyspace]]
+name = "rate_60s"
+key_size = [[13, 0.7], [25, 0.3]]
+keys = 1000000
+ttl = "window:60"
+value_size = 8
+preload = "incr"
+
+[[keyspace]]
+name = "rate_3600s"
+key_size = [[13, 0.5], [41, 0.5]]
+keys = 1000000
+ttl = "window:3600"
+value_size = 8
+preload = "incr"
+
+[[keyspace]]
+name = "rate_86400s"
+key_size = [[13, 0.7], [25, 0.3]]
+keys = 1000000
+ttl = "window:86400"
+value_size = 8
+preload = "incr"
+
+[[keyspace]]
+name = "greylist"
+key_size = 33
+keys = 1000000
+ttl = "86400"
+value_size = 0
+preload = "set"
+
+[[keyspace]]
+name = "queue_lock"
+key_size = 17
+keys = 100000
+ttl = "600"
+value_size = 8
+
+[[keyspace]]
+name = "task_lock"
+key_size = 9
+keys = 10000
+ttl = "300"
+value_size = 8
+
+[[keyspace]]
+name = "search_lock"
+key_size = 6
+keys = 10000
+ttl = "600"
+value_size = 8
+
+[[keyspace]]
+name = "blob"
+key_size = 41
+keys = 1000
+ttl = "600"
+value_size = "log-uniform:1024:1048576"
+preload = "set"
+
+[[op]]
+kind = "incr"
+keyspace = "rate_1s"
+weight = 15
+
+[[op]]
+kind = "incr"
+keyspace = "rate_60s"
+weight = 35
+
+[[op]]
+kind = "incr"
+keyspace = "rate_3600s"
+weight = 12
+
+[[op]]
+kind = "incr"
+keyspace = "rate_86400s"
+weight = 8
+
+[[op]]
+kind = "get"
+keyspace = "rate_60s"
+weight = 4.95
+
+[[op]]
+kind = "exists"
+keyspace = "greylist"
+weight = 5
+
+[[op]]
+kind = "get"
+keyspace = "blob"
+weight = 0.05
+
+[[op]]
+kind = "try_lock"
+keyspace = "queue_lock"
+weight = 5
+
+[[op]]
+kind = "try_lock"
+keyspace = "task_lock"
+weight = 2
+
+[[op]]
+kind = "try_lock"
+keyspace = "search_lock"
+weight = 1
+
+[[op]]
+kind = "unlock"
+keyspace = "queue_lock"
+weight = 5
+key = "held"
+
+[[op]]
+kind = "unlock"
+keyspace = "task_lock"
+weight = 2
+key = "held"
+
+[[op]]
+kind = "unlock"
+keyspace = "search_lock"
+weight = 1
+key = "held"
+
+[[op]]
+kind = "set"
+keyspace = "greylist"
+weight = 2.95
+
+[[op]]
+kind = "set"
+keyspace = "blob"
+weight = 0.05
+
+[[op]]
+kind = "renew"
+keyspace = "search_lock"
+weight = 1
+key = "held"
+
+[[op]]
+kind = "delete_prefix"
+keyspace = "task_lock"
+weight = 0

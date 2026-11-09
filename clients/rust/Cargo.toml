@@ -1,0 +1,34 @@
+[package]
+name = "keep-client"
+description = "Rust client for Stalwart Keep, an ephemeral key-value store and event stream server for clustered applications"
+version = "1.0.0"
+edition.workspace = true
+rust-version = "1.95"
+authors = ["Stalwart Labs <hello@stalw.art>"]
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/stalwartlabs/keep"
+homepage = "https://github.com/stalwartlabs/keep"
+documentation = "https://docs.rs/keep-client"
+readme = "README.md"
+keywords = ["keep", "stalwart", "client", "key-value", "lock"]
+categories = ["network-programming", "database", "asynchronous"]
+include = ["src/**/*.rs", "README.md", "LICENSES/*.txt"]
+
+[dependencies]
+arc-swap = "1.9"
+foldhash = "0.2"
+getrandom = { version = "0.4", features = ["std"] }
+hashify = "0.3"
+keep-proto = { version = "1.0.0", path = "../../crates/keep-proto", features = ["tls"] }
+libc = "0.2"
+memchr = "2.8"
+rustls = { version = "0.23.46", default-features = false, features = ["aws_lc_rs", "std"] }
+socket2 = "0.6"
+tokio = { version = "1.54", features = ["macros", "net", "rt", "sync", "time"] }
+
+[dev-dependencies]
+rcgen = { version = "0.14", default-features = false, features = ["aws_lc_rs", "pem"] }
+tokio = { version = "1.54", features = ["net", "rt", "rt-multi-thread", "sync", "time", "macros", "io-util"] }
+
+[lints]
+workspace = true

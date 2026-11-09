@@ -1,0 +1,32 @@
+[demand]
+typical_ops = 34.0
+peak_ops = 340.0
+events = "events-mixed"
+typical_events = 0.0
+peak_events = 0.0
+source = "modelled from code (cache swap tier, off by default): snapshot flushes write 64 KiB to 1 MiB chunks and a pointer, loads read the pointer and chunks, the previous generation is unlinked"
+
+[[action]]
+kind = "set"
+family = "swap-chunk"
+weight = 10
+
+[[action]]
+kind = "set"
+family = "swap-pointer"
+weight = 2
+
+[[action]]
+kind = "get"
+family = "swap-pointer"
+weight = 7
+
+[[action]]
+kind = "get"
+family = "swap-chunk"
+weight = 5
+
+[[action]]
+kind = "delete"
+family = "swap-chunk"
+weight = 10

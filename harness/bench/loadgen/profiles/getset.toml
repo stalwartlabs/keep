@@ -1,0 +1,22 @@
+# Plain GET/SET 1:1 for cross-checks against rpc-perf and memtier_benchmark.
+# memtier equivalent: --ratio=1:1 -d 32 --key-minimum=0 --key-maximum=99999 --key-pattern=R:R
+
+name = "getset"
+description = "50% get, 50% set, 16 B keys, 32 B values, 100k keys"
+
+[[keyspace]]
+name = "kv"
+key_size = 16
+keys = 100000
+value_size = 32
+preload = "set"
+
+[[op]]
+kind = "get"
+keyspace = "kv"
+weight = 1
+
+[[op]]
+kind = "set"
+keyspace = "kv"
+weight = 1

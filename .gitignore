@@ -1,0 +1,13 @@
+.*
+!.cargo/
+!.github/
+!.gitignore
+!.dockerignore
+!.keep
+/target/
+target/
+/work/
+**/fuzz/artifacts/
+*.hgrm.tmp
+*.pyc
+__pycache__/

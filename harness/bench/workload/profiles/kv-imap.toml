@@ -1,0 +1,39 @@
+[demand]
+typical_ops = 1015.0
+peak_ops = 10150.0
+events = "events-imap"
+typical_events = 109.0
+peak_events = 1090.0
+source = "modelled from code: 1 rate-limit incr per IMAP, POP3 or ManageSieve command after login (measured mixed run: 997 incr/s), 10% of commands write (STORE, EXPUNGE, MOVE, APPEND: 1 state_change each), 2 APPEND/s (index drain and MergeThreads task lock pairs); peak 10x"
+
+[[action]]
+kind = "rate"
+family = "imap-rate"
+weight = 1000
+
+[[action]]
+kind = "lock"
+family = "index-lock"
+weight = 5
+hold_ms = { dist = "exp", mean = 40 }
+
+[[action]]
+kind = "lease"
+family = "task-lock"
+weight = 2
+hold_ms = { dist = "exp", mean = 200 }
+
+[[action]]
+kind = "rate"
+family = "auth-fail-ip"
+weight = 1
+
+[[action]]
+kind = "rate"
+family = "auth-fail-login"
+weight = 1
+
+[[action]]
+kind = "rate"
+family = "scan"
+weight = 1

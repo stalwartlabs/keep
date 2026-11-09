@@ -1,0 +1,30 @@
+[package]
+name = "mock-stalwart-fuzz"
+version = "0.0.0"
+license = "AGPL-3.0-only OR LicenseRef-SEL"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+mock-stalwart = { path = ".." }
+
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "frame"
+path = "fuzz_targets/frame.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "trace"
+path = "fuzz_targets/trace.rs"
+test = false
+doc = false
+bench = false

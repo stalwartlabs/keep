@@ -1,0 +1,13 @@
+target/
+work/
+**/fuzz/target/
+**/fuzz/artifacts/
+**/fuzz/corpus/
+.git/
+.github/
+.claude/
+.DS_Store
+artifact/
+docs/
+*.md
+.ignore/

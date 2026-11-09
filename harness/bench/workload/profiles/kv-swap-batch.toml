@@ -1,0 +1,33 @@
+[demand]
+typical_ops = 18.0
+peak_ops = 180.0
+events = "events-mixed"
+typical_events = 0.0
+peak_events = 0.0
+source = "modelled from Stalwart's code (cache/swap/redis.rs): the swap profile with Stalwart's key_set_many, chunks written in pipelined batches of up to MAX_CALL_BYTES (8 MiB) and the pointer as a one-item batch; ops count calls, not keys"
+
+[[action]]
+kind = "set-many"
+family = "swap-chunk"
+weight = 2
+batch = { dist = "uniform", min = 1, max = 8 }
+
+[[action]]
+kind = "set-many"
+family = "swap-pointer"
+weight = 2
+
+[[action]]
+kind = "get"
+family = "swap-pointer"
+weight = 7
+
+[[action]]
+kind = "get"
+family = "swap-chunk"
+weight = 5
+
+[[action]]
+kind = "delete"
+family = "swap-chunk"
+weight = 10

@@ -1,0 +1,33 @@
+[demand]
+typical_ops = 120.0
+peak_ops = 1200.0
+events = "events-mixed"
+typical_events = 0.0
+peak_events = 0.0
+source = "modelled from Stalwart's code to load the lease and lock renewal paths: task-manager leases (try_lease, renew_lease every LEASE_DURATION / 3 with try_lease as fallback, release_lease; 300 s lease) and search index partition locks (try_lock, renew_lock when 60 s remain of 600 s, unlock); hold times are compressed so renewals happen within a run"
+
+[[action]]
+kind = "lease"
+family = "task-lock"
+weight = 40
+hold_ms = { dist = "exp", mean = 200 }
+
+[[action]]
+kind = "lease"
+family = "task-lock"
+weight = 4
+hold_ms = { dist = "exp", mean = 6000 }
+renews = 2
+
+[[action]]
+kind = "lock"
+family = "index-lock"
+weight = 10
+hold_ms = { dist = "exp", mean = 40 }
+
+[[action]]
+kind = "lock"
+family = "index-lock"
+weight = 2
+hold_ms = { dist = "exp", mean = 6000 }
+renews = 2

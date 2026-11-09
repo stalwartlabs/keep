@@ -1,0 +1,17 @@
+[package]
+name = "stalwart-workload"
+version = "1.0.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "stalwart_workload"
+
+[dependencies]
+foldhash = "0.2"
+hashify = "0.3"
+rand = { version = "0.10", default-features = false, features = ["std"] }
+rand_distr = "0.6"
+serde = { version = "1", features = ["derive"] }
+toml = "1"

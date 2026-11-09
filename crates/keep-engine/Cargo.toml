@@ -1,0 +1,13 @@
+[package]
+name = "keep-engine"
+version = "1.0.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+foldhash = "0.2"
+libc = "0.2"
+
+[lints]
+workspace = true

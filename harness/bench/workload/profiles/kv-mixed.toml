@@ -1,0 +1,65 @@
+[demand]
+typical_ops = 316.0
+peak_ops = 3816.0
+events = "events-mixed"
+typical_events = 104.0
+peak_events = 1558.0
+source = "measured: a light mixed run (typical) and a saturated lab run (peak); action weights are the measured rates per second plus a modelled internet background"
+
+[[action]]
+kind = "rate"
+family = "imap-rate"
+weight = 997
+
+[[action]]
+kind = "rate"
+family = "smtp-rcpt"
+weight = 409
+
+[[action]]
+kind = "rate"
+family = "smtp-connect"
+weight = 1
+
+[[action]]
+kind = "rate"
+family = "http-auth"
+weight = 318
+
+[[action]]
+kind = "lock"
+family = "queue-lock"
+weight = 409
+hold_ms = { dist = "exp", mean = 20 }
+
+[[action]]
+kind = "lock"
+family = "index-lock"
+weight = 104
+hold_ms = { dist = "exp", mean = 40 }
+
+[[action]]
+kind = "rate"
+family = "http-anon"
+weight = 3
+
+[[action]]
+kind = "rate"
+family = "auth-fail-ip"
+weight = 1
+
+[[action]]
+kind = "rate"
+family = "auth-fail-login"
+weight = 1
+
+[[action]]
+kind = "rate"
+family = "scan"
+weight = 1
+
+[[action]]
+kind = "token"
+family = "oauth-code"
+weight = 1
+redeem_ms = { dist = "exp", mean = 2000 }

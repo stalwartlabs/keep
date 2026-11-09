@@ -1,0 +1,54 @@
+[demand]
+typical_ops = 716.0
+peak_ops = 7160.0
+events = "events-mta"
+typical_events = 390.0
+peak_events = 3900.0
+source = "typical measured (low-load MTA relay run: 238 messages/s, 716 KV ops/s, srv at 10% CPU); peak modelled as 10x (the saturation run collapsed on a Stalwart RocksDB issue); per-message recipe from code: 0.67 connect throttle, 1.2 recipient throttle, 1.03 queue lock pairs, 0.4 index lock pairs per delivered message"
+
+[[action]]
+kind = "rate"
+family = "smtp-connect"
+weight = 100
+
+[[action]]
+kind = "rate"
+family = "smtp-rcpt"
+weight = 180
+
+[[action]]
+kind = "lock"
+family = "queue-lock"
+weight = 155
+hold_ms = { dist = "exp", mean = 30 }
+
+[[action]]
+kind = "lock"
+family = "index-lock"
+weight = 40
+hold_ms = { dist = "exp", mean = 40 }
+
+[[action]]
+kind = "rate"
+family = "rcpt-fail-ip"
+weight = 2
+
+[[action]]
+kind = "rate"
+family = "rcpt-fail-addr"
+weight = 2
+
+[[action]]
+kind = "rate"
+family = "auth-fail-ip"
+weight = 1
+
+[[action]]
+kind = "rate"
+family = "auth-fail-login"
+weight = 1
+
+[[action]]
+kind = "rate"
+family = "scan"
+weight = 1

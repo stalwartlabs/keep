@@ -1,0 +1,51 @@
+{
+  "track": "stream",
+  "regions": {
+    "main": {
+      "location": "REGION_MAIN",
+      "prefix": "10.40.0.0/16",
+      "ppg": true
+    }
+  },
+  "targets": {
+    "build": "c1"
+  },
+  "vms": [
+    {
+      "name": "brk",
+      "role": "server",
+      "region": "main",
+      "size": "Standard_F16as_v7",
+      "disk": 64,
+      "provision": [
+        "os-tuning",
+        "idle-poll",
+        "docker",
+        "competitors"
+      ]
+    },
+    {
+      "name": "c1",
+      "role": "load",
+      "region": "main",
+      "size": "Standard_F16as_v7",
+      "disk": 128,
+      "provision": [
+        "os-tuning",
+        "idle-poll",
+        "toolchain"
+      ]
+    },
+    {
+      "name": "c2",
+      "role": "load",
+      "region": "main",
+      "size": "Standard_F16as_v7",
+      "disk": 64,
+      "provision": [
+        "os-tuning",
+        "idle-poll"
+      ]
+    }
+  ]
+}

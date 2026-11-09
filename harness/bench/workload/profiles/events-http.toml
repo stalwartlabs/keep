@@ -1,0 +1,32 @@
+[[event]]
+name = "state-change"
+tag = 0
+weight = 700
+size = { dist = "uniform", min = 5, max = 8 }
+accounts = 100000
+
+[[event]]
+name = "index-refresh"
+tag = 14
+weight = 100
+size = 1
+
+[[event]]
+name = "task-refresh"
+tag = 13
+weight = 20
+size = 1
+
+[[event]]
+name = "push-server-update"
+tag = 3
+weight = 5
+size = { dist = "uniform", min = 2, max = 6 }
+accounts = 100000
+
+[[event]]
+name = "calendar-alert"
+tag = 1
+weight = 5
+size = { dist = "uniform", min = 50, max = 80 }
+accounts = 100000

@@ -1,0 +1,32 @@
+[package]
+name = "keep-proto"
+description = "Wire protocol of Stalwart Keep, an ephemeral key-value store and event stream server for clustered applications"
+version = "1.0.0"
+edition.workspace = true
+rust-version = "1.95"
+authors = ["Stalwart Labs <hello@stalw.art>"]
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/stalwartlabs/keep"
+homepage = "https://github.com/stalwartlabs/keep"
+documentation = "https://docs.rs/keep-proto"
+readme = "README.md"
+keywords = ["keep", "stalwart", "protocol", "key-value", "stream"]
+categories = ["network-programming", "encoding"]
+include = ["src/**/*.rs", "README.md", "LICENSES/*.txt"]
+
+[features]
+tls = ["dep:memchr", "dep:rustls-pki-types"]
+
+[dependencies]
+hmac = "0.13"
+memchr = { version = "2.8", optional = true }
+rustls-pki-types = { version = "1.15", optional = true }
+sha2 = { version = "0.11", default-features = false }
+siphasher = { version = "1.0", default-features = false }
+subtle = { version = "2.6", default-features = false }
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

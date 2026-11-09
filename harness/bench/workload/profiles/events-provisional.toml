@@ -1,0 +1,78 @@
+[[event]]
+name = "state-change"
+tag = 0
+weight = 5000
+size = { dist = "uniform", min = 8, max = 12 }
+accounts = 100000
+
+[[event]]
+name = "email-push"
+tag = 2
+weight = 2500
+size = { dist = "uniform", min = 10, max = 14 }
+accounts = 100000
+
+[[event]]
+name = "queue-refresh"
+tag = 12
+weight = 400
+size = 1
+
+[[event]]
+name = "task-refresh"
+tag = 13
+weight = 300
+size = 1
+
+[[event]]
+name = "index-refresh"
+tag = 14
+weight = 300
+size = 1
+
+[[event]]
+name = "cache-invalidate"
+tag = 7
+weight = 700
+size = { dist = "uniform", min = 7, max = 97 }
+
+[[event]]
+name = "cache-invalidate-bulk"
+tag = 7
+weight = 100
+size = { dist = "log-uniform", min = 2662, max = 524288 }
+
+[[event]]
+name = "registry-insert"
+tag = 4
+weight = 150
+size = { dist = "uniform", min = 6, max = 10 }
+accounts = 64
+
+[[event]]
+name = "registry-reload"
+tag = 6
+weight = 50
+size = 3
+accounts = 64
+
+[[event]]
+name = "calendar-alert"
+tag = 1
+weight = 100
+size = { dist = "uniform", min = 40, max = 100 }
+accounts = 100000
+
+[[event]]
+name = "push-server-update"
+tag = 3
+weight = 100
+size = { dist = "uniform", min = 3, max = 6 }
+accounts = 100000
+
+[[event]]
+name = "viewer-state-change"
+tag = 15
+weight = 300
+size = { dist = "uniform", min = 12, max = 16 }
+accounts = 100000

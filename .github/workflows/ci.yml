@@ -1,0 +1,345 @@
+name: "CI"
+
+on:
+  workflow_dispatch:
+    inputs:
+      Docker:
+        required: false
+        default: false
+        type: boolean
+      Release:
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_NET_RETRY: 10
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Rust
+        run: |
+          version="$(sed -n 's/^ARG RUST_VERSION=//p' Dockerfile)"
+          test -n "${version}"
+          rustup toolchain install "${version}" --profile minimal --component rustfmt,clippy
+          rustup default "${version}"
+
+      - name: Cache Cargo
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: check-${{ runner.os }}-${{ hashFiles('Cargo.lock', 'Dockerfile') }}
+
+      - name: Format
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --locked --all-targets -- -D warnings
+
+      - name: Clippy (harness cfgs)
+        env:
+          RUSTFLAGS: --cfg keep_bench --cfg keep_observe
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
+
+  linux:
+    name: Build / ${{matrix.target}}
+    needs: [check]
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
+            platform: linux/amd64
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-24.04-arm
+            platform: linux/arm64
+    runs-on: ${{matrix.runner}}
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          buildkitd-config-inline: |
+            [registry."docker.io"]
+              mirrors = ["https://mirror.gcr.io"]
+
+      - name: Log In to GitHub Container Registry
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || inputs.Docker
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{github.repository_owner}}
+          password: ${{github.token}}
+
+      - name: Log In to DockerHub
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || inputs.Docker
+        uses: docker/login-action@v4
+        with:
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      - name: Extract Metadata for Docker
+        uses: docker/metadata-action@v6
+        id: meta
+        with:
+          images: |
+            index.docker.io/${{github.repository}}
+            ghcr.io/${{github.repository}}
+          tags: |
+            type=ref,event=tag
+            type=ref,event=branch,prefix=branch-
+            type=edge,branch=main
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{major}}
+
+      - name: Build Artifact
+        id: bake
+        uses: docker/bake-action@v7
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
+          TARGET: ${{matrix.target}}
+          DOCKER_PLATFORM: ${{matrix.platform}}
+        with:
+          source: .
+          set: |
+            *.tags=
+            image.output=type=image,"name=ghcr.io/${{github.repository}},index.docker.io/${{github.repository}}",push-by-digest=true,name-canonical=true,push=true,compression=zstd,compression-level=9,force-compression=true,oci-mediatypes=true
+          files: |
+            docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
+          targets: ${{(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || inputs.Docker) && 'build,image' || 'build'}}
+
+      - name: Check Artifact
+        run: |
+          file artifact/keep
+          ./artifact/keep --help > /dev/null
+          version="$(./artifact/keep --version)"
+          echo "${version}"
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            test "${version}" = "keep ${GITHUB_REF_NAME#v}"
+          fi
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: artifact-${{matrix.target}}
+          path: artifact/keep
+
+      - name: Export digest & Rename meta bake definition file
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || inputs.Docker
+        run: |
+          mv "${{ steps.meta.outputs.bake-file }}" "${{ runner.temp }}/bake-meta.json"
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ fromJSON(steps.bake.outputs.metadata).image['containerimage.digest'] }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || inputs.Docker
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: digests-${{ matrix.target }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload meta bake definition
+        if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || inputs.Docker) && startsWith(matrix.target, 'x86')
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: bake-meta
+          path: ${{ runner.temp }}/bake-meta.json
+          if-no-files-found: error
+          retention-days: 1
+
+  multiarch:
+    name: Merge image
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+      packages: write
+    needs: [linux]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || inputs.Docker
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v4.1.2
+
+      - name: Log In to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{github.repository_owner}}
+          password: ${{github.token}}
+
+      - name: Log In to DockerHub
+        uses: docker/login-action@v4
+        with:
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      - name: Download meta bake definition
+        uses: actions/download-artifact@v8
+        with:
+          name: bake-meta
+          path: ${{ runner.temp }}
+
+      - name: Download digests
+        uses: actions/download-artifact@v8
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("ghcr.io/${{github.repository}}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json) \
+            $(printf 'ghcr.io/${{github.repository}}@sha256:%s ' *)
+          docker buildx imagetools create $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("index.docker.io/${{github.repository}}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json) \
+            $(printf 'index.docker.io/${{github.repository}}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          version="$(jq -r '.target."docker-metadata-action".args.DOCKER_META_VERSION' ${{ runner.temp }}/bake-meta.json)"
+          docker buildx imagetools inspect --format '{{json .Manifest}}' "ghcr.io/${{github.repository}}:${version}" | jq -r '.digest' > GHCR_DIGEST_SHA
+          echo "GHCR_DIGEST_SHA=$(cat GHCR_DIGEST_SHA)" | tee -a "${GITHUB_ENV}"
+          docker buildx imagetools inspect --format '{{json .Manifest}}' "index.docker.io/${{github.repository}}:${version}" | jq -r '.digest' > DOCKERHUB_DIGEST_SHA
+          echo "DOCKERHUB_DIGEST_SHA=$(cat DOCKERHUB_DIGEST_SHA)" | tee -a "${GITHUB_ENV}"
+          cosign sign --yes $(jq --arg GHCR_DIGEST_SHA "$(cat GHCR_DIGEST_SHA)" -cr '.target."docker-metadata-action".tags | map(select(startswith("ghcr.io/${{github.repository}}")) | . + "@" + $GHCR_DIGEST_SHA) | join(" ")' ${{ runner.temp }}/bake-meta.json)
+          cosign sign --yes $(jq --arg DOCKERHUB_DIGEST_SHA "$(cat DOCKERHUB_DIGEST_SHA)" -cr '.target."docker-metadata-action".tags | map(select(startswith("index.docker.io/${{github.repository}}")) | . + "@" + $DOCKERHUB_DIGEST_SHA) | join(" ")' ${{ runner.temp }}/bake-meta.json)
+
+      - name: Attest GHCR
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: ghcr.io/${{github.repository}}
+          subject-digest: ${{ env.GHCR_DIGEST_SHA }}
+          push-to-registry: true
+
+      - name: Attest Dockerhub
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: index.docker.io/${{github.repository}}
+          subject-digest: ${{ env.DOCKERHUB_DIGEST_SHA }}
+          push-to-registry: true
+
+  release:
+    name: Release
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || inputs.Release
+    needs: [linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (for CHANGELOG)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/checkout@v7
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: archive
+          pattern: artifact-*
+
+      - name: Compress
+        run: |
+          set -eux
+          cd archive
+          for dir in artifact-*; do
+              target="${dir#artifact-}"
+              chmod 0755 "${dir}/keep"
+              tar -czf "keep-${target}.tar.gz" -C "${dir}" keep
+          done
+
+      - name: Attest binary
+        id: attest
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: archive/*.tar.gz
+
+      - name: Use cosign to sign existing artifacts
+        uses: sigstore/gh-action-sigstore-python@v3.5.0
+        with:
+          inputs: archive/*.tar.gz
+
+      - name: Build release body
+        run: |
+          if [ "${{ startsWith(github.ref, 'refs/tags/') }}" = "true" ] && [ -f CHANGELOG.md ]; then
+            awk '/^## \[/{c++} c==1' CHANGELOG.md > release_body.md
+            echo "" >> release_body.md
+          else
+            : > release_body.md
+          fi
+          cat >> release_body.md <<EOF
+          <hr />
+
+          ### Check binary attestation [here](${{ steps.attest.outputs.attestation-url }})
+          EOF
+
+      - name: Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            archive/*.tar.gz
+            archive/*.sigstore.json
+          prerelease: ${{!startsWith(github.ref, 'refs/tags/') || null}}
+          tag_name: ${{!startsWith(github.ref, 'refs/tags/') && 'nightly' || null}}
+          draft: ${{ startsWith(github.ref, 'refs/tags/') || null }}
+          body_path: release_body.md
+
+  publish:
+    name: Publish release
+    needs: [linux, multiarch, release]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Un-draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "${{ github.ref_name }}" --draft=false --latest --repo "${{ github.repository }}"
+
+  cleanup:
+    name: Cleanup failed release
+    needs: [linux, multiarch, release]
+    if: failure() && startsWith(github.ref, 'refs/tags/') && github.run_attempt >= 3
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete draft release and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release delete "${{ github.ref_name }}" --yes --cleanup-tag --repo "${{ github.repository }}" || true

@@ -1,0 +1,5 @@
+{
+  "track": "kv",
+  "regions": {"main": {"location": "REGION_MAIN", "prefix": "10.40.0.0/16", "ppg": true}},
+  "vms": [{"name": "srv", "role": "server", "region": "main", "size": "Standard_D16ps_v6", "provision": []}]
+}

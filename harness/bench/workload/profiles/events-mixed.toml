@@ -1,0 +1,18 @@
+[[event]]
+name = "queue-refresh"
+tag = 12
+weight = 374
+size = 1
+
+[[event]]
+name = "index-refresh"
+tag = 14
+weight = 313
+size = 1
+
+[[event]]
+name = "email-push"
+tag = 2
+weight = 313
+size = { dist = "uniform", min = 4, max = 7 }
+accounts = 100000

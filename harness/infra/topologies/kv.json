@@ -1,0 +1,62 @@
+{
+  "track": "kv",
+  "regions": {
+    "main": {
+      "location": "REGION_MAIN",
+      "prefix": "10.40.0.0/16",
+      "ppg": true
+    }
+  },
+  "targets": {
+    "build": "gen1"
+  },
+  "vms": [
+    {
+      "name": "srv",
+      "role": "server",
+      "region": "main",
+      "size": "Standard_F4as_v7",
+      "disk": 64,
+      "provision": [
+        "os-tuning",
+        "idle-poll",
+        "docker",
+        "competitors"
+      ]
+    },
+    {
+      "name": "gen1",
+      "role": "load",
+      "region": "main",
+      "size": "Standard_F16as_v7",
+      "disk": 128,
+      "provision": [
+        "os-tuning",
+        "idle-poll",
+        "toolchain"
+      ]
+    },
+    {
+      "name": "gen2",
+      "role": "load",
+      "region": "main",
+      "size": "Standard_F16as_v7",
+      "disk": 64,
+      "provision": [
+        "os-tuning",
+        "idle-poll"
+      ]
+    },
+    {
+      "name": "gen3",
+      "role": "load",
+      "region": "main",
+      "size": "Standard_F16as_v7",
+      "disk": 64,
+      "provision": [
+        "os-tuning",
+        "idle-poll"
+      ]
+    }
+  ]
+}

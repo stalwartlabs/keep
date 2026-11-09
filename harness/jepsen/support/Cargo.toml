@@ -1,0 +1,20 @@
+[package]
+name = "keep-jepsen"
+version = "1.0.0"
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "keep-jepsen"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.6", features = ["derive"] }
+foldhash = "0.2"
+keep-client = { path = "../../../clients/rust" }
+keep-proto = { path = "../../../crates/keep-proto" }
+rcgen = { version = "0.14", default-features = false, features = ["aws_lc_rs", "pem"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1.54", features = ["io-util", "macros", "net", "rt-multi-thread"] }

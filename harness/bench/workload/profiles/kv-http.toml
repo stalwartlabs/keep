@@ -1,0 +1,65 @@
+[demand]
+typical_ops = 1080.0
+peak_ops = 10800.0
+events = "events-http"
+typical_events = 83.0
+peak_events = 830.0
+source = "modelled from code: 1 rate-limit incr per authenticated JMAP or DAV request, +1 quota incr per upload, +1 availability incr per getAvailability, 1 lock-set get per DAV write, get + set per DAV LOCK, 1 anonymous incr per anonymous request, OAuth code set/get/delete per login; peak 10x"
+
+[[action]]
+kind = "rate"
+family = "http-auth"
+weight = 1000
+
+[[action]]
+kind = "rate"
+family = "blob-quota"
+weight = 10
+
+[[action]]
+kind = "rate"
+family = "availability"
+weight = 2
+
+[[action]]
+kind = "get"
+family = "dav-lock"
+weight = 21
+
+[[action]]
+kind = "set"
+family = "dav-lock"
+weight = 1
+
+[[action]]
+kind = "rate"
+family = "http-anon"
+weight = 22
+
+[[action]]
+kind = "token"
+family = "oauth-code"
+weight = 1
+redeem_ms = { dist = "exp", mean = 2000 }
+
+[[action]]
+kind = "lock"
+family = "index-lock"
+weight = 5
+hold_ms = { dist = "exp", mean = 40 }
+
+[[action]]
+kind = "lease"
+family = "task-lock"
+weight = 2
+hold_ms = { dist = "exp", mean = 200 }
+
+[[action]]
+kind = "rate"
+family = "auth-fail-ip"
+weight = 1
+
+[[action]]
+kind = "rate"
+family = "auth-fail-login"
+weight = 1

@@ -1,0 +1,22 @@
+[demand]
+typical_ops = 7000.0
+peak_ops = 70000.0
+events = "events-mixed"
+typical_events = 0.0
+peak_events = 0.0
+source = "scenario from code: failed logins and invalid commands from rotating IPv6 addresses; every attempt creates fresh 25 B rate-limit keys that live for the rest of a 24 h window (IP key, then a 41 B login key while the IP is within its limit)"
+
+[[action]]
+kind = "rate"
+family = "auth-fail-ip6"
+weight = 2500
+
+[[action]]
+kind = "rate"
+family = "auth-fail-login"
+weight = 2500
+
+[[action]]
+kind = "rate"
+family = "scan-ip6"
+weight = 2000

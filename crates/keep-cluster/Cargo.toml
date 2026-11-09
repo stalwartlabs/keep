@@ -1,0 +1,17 @@
+[package]
+name = "keep-cluster"
+version = "1.0.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+keep-engine = { path = "../keep-engine" }
+keep-proto = { path = "../keep-proto" }
+siphasher = { version = "1.0", default-features = false }
+
+[target.'cfg(loom)'.dependencies]
+loom = "0.7"
+
+[lints]
+workspace = true

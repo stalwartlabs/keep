@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -u
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -o|-i|-p|-l) shift 2 ;;
+    -*) shift ;;
+    *) break ;;
+  esac
+done
+host=$1
+shift
+cmd="$*"
+printf '%s\t%s\n' "$host" "$cmd" >> "$FAKE_LOG"
+case "$cmd" in
+  *"job.sh start"*) echo "done 0" ;;
+  *"job.sh status"*) echo "done 0" ;;
+  *"job.sh log provision-jepsen-control"*) echo "pubkey ssh-rsa AAAAfake root@ctl" ;;
+  *"job.sh log"*) echo "log line" ;;
+  nproc) echo 4 ;;
+  *"getconf CLK_TCK"*) echo 100 ;;
+  *"getconf PAGESIZE"*) echo 4096 ;;
+  *"netprobe tcp-ping"*"--label 'srv>gen1'"*) echo '{"probe": "tcp-ping", "label": "srv>gen1", "rtt_ns": {"p50": 60000, "p99": 90000, "p999": 120000}}' ;;
+  *"netprobe tcp-ping"*) echo '{"probe": "tcp-ping", "label": "brk>c1", "rtt_ns": {"p50": 95000, "p99": 99000, "p999": 120000}}' ;;
+  *"control.sh client"*) echo '{"probe": "tcp-ping", "label": "kv/start/closed64", "rtt_ns": {"p50": 60000, "p99": 90000, "p999": 120000}}' ;;
+  *"control.sh counters"*) echo '{"probe": "counters", "label": "kv/start", "phase": "before", "host": "h", "steal_ticks": 0, "tcp_retrans": 0, "rx_dropped": 0}' ;;
+  *"sha256sum keep"*|*"sha256sum $"*|*"&& sha256sum "*) echo "0000  keep" ;;
+  *"tar -C"*"-czf -"*) tar -czf - -C "$FAKE_EMPTY" . ;;
+  *"cat /opt/keep/baselines/cgsample.jsonl"*) echo '{"t_ns":1,"cpu_us":1,"mem_bytes":1}' ;;
+  *"docker ps -q --filter name=keep-); do pid"*) echo "c1 100 10 20 300" ;;
+  *"base64 -d | sudo bash"*) echo "mem keep-kv 1024 2048 512"; echo "keys 11211 :10" ;;
+esac
+[ -t 0 ] || cat > /dev/null
+exit 0

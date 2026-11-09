@@ -1,0 +1,190 @@
+[[family]]
+name = "smtp-connect"
+prefix = 6
+id_len = 32
+window = 1
+population = { per = "client-ips", factor = 0.05, min = 16 }
+popularity = "zipf:0.99"
+
+[[family]]
+name = "smtp-rcpt"
+prefix = 6
+id_len = 32
+window = 3600
+population = { per = "messages-per-hour", factor = 0.8, min = 1000 }
+live = { per = "messages-per-hour", factor = 0.4 }
+
+[[family]]
+name = "rcpt-fail-ip"
+prefix = 2
+id_len = 4
+window = 86400
+population = { per = "client-ips", factor = 0.02, min = 100 }
+live = { per = "client-ips", factor = 0.02 }
+
+[[family]]
+name = "rcpt-fail-addr"
+prefix = 2
+id_len = 32
+window = 86400
+population = { per = "client-ips", factor = 0.06, min = 300 }
+live = { per = "client-ips", factor = 0.06 }
+
+[[family]]
+name = "scan"
+prefix = 3
+id_len = 4
+window = 86400
+population = { per = "client-ips", factor = 0.05, min = 100 }
+live = { per = "client-ips", factor = 0.05 }
+
+[[family]]
+name = "auth-fail-ip"
+prefix = 5
+id_len = 4
+window = 86400
+population = { per = "client-ips", factor = 0.02, min = 100 }
+popularity = "zipf:0.99"
+live = { per = "client-ips", factor = 0.02 }
+
+[[family]]
+name = "auth-fail-login"
+prefix = 5
+id_len = 32
+window = 86400
+population = { per = "client-ips", factor = 0.1, min = 500 }
+live = { per = "client-ips", factor = 0.1 }
+
+[[family]]
+name = "auth-fail-ip6"
+prefix = 5
+id_len = 16
+window = 86400
+population = { per = "client-ips", factor = 50.0, min = 1000000 }
+
+[[family]]
+name = "scan-ip6"
+prefix = 3
+id_len = 16
+window = 86400
+population = { per = "client-ips", factor = 50.0, min = 1000000 }
+
+[[family]]
+name = "http-auth"
+prefix = 8
+id_len = 4
+window = 60
+population = { per = "active-accounts", factor = 1.0, min = 100 }
+popularity = "zipf:0.99"
+live = { per = "active-accounts", factor = 0.5 }
+
+[[family]]
+name = "http-anon"
+prefix = 9
+id_len = 4
+window = 60
+population = { per = "client-ips", factor = 0.1, min = 100 }
+popularity = "zipf:0.99"
+live = { per = "client-ips", factor = 0.02 }
+
+[[family]]
+name = "imap-rate"
+prefix = 10
+id_len = 4
+window = 60
+population = { per = "active-accounts", factor = 1.0, min = 100 }
+popularity = "zipf:0.99"
+live = { per = "active-accounts", factor = 0.5 }
+
+[[family]]
+name = "blob-quota"
+prefix = 11
+id_len = 4
+window = 3600
+population = { per = "active-accounts", factor = 0.2, min = 100 }
+popularity = "zipf:0.99"
+live = { per = "active-accounts", factor = 0.1 }
+
+[[family]]
+name = "availability"
+prefix = 12
+id_len = 4
+window = 60
+population = { per = "active-accounts", factor = 0.05, min = 100 }
+popularity = "zipf:0.99"
+
+[[family]]
+name = "greylist"
+prefix = 13
+id_len = 32
+ttl = 86400
+population = { per = "messages-per-hour", factor = 19.2, min = 10000 }
+popularity = "zipf:0.99"
+live = { per = "messages-per-hour", factor = 9.6 }
+
+[[family]]
+name = "queue-lock"
+prefix = 14
+id_len = 16
+ttl = 600
+population = { per = "messages-per-hour", factor = 24.0, min = 1000000 }
+
+[[family]]
+name = "task-lock"
+prefix = 15
+id_len = 8
+ttl = 300
+population = { per = "accounts", factor = 1.0, min = 10000 }
+
+[[family]]
+name = "dav-lock"
+prefix = 16
+id_len = 5
+ttl = 3600
+population = { per = "accounts", factor = 0.1, min = 1000 }
+popularity = "zipf:0.99"
+value = { dist = "log-uniform", min = 60, max = 16384 }
+live = { per = "accounts", factor = 0.01 }
+
+[[family]]
+name = "index-lock"
+prefix = 17
+id_len = 5
+ttl = 600
+population = { per = "active-accounts", factor = 1.0, min = 100 }
+
+[[family]]
+name = "oauth-code"
+prefix = 1
+id_len = 40
+ttl = 600
+population = { per = "accounts", factor = 10.0, min = 100000 }
+value = { dist = "log-uniform", min = 100, max = 2200 }
+
+[[family]]
+name = "acme"
+prefix = 0
+id_len = { dist = "uniform", min = 12, max = 60 }
+ttl = 3600
+population = 1000
+value = { dist = "log-uniform", min = 87, max = 1024 }
+purgeable = true
+
+[[family]]
+name = "swap-pointer"
+prefix = 123
+id_len = 20
+ttl = 604800
+population = { per = "accounts", factor = 0.4, min = 1000 }
+popularity = "zipf:0.99"
+value = 48
+live = { per = "accounts", factor = 0.2 }
+
+[[family]]
+name = "swap-chunk"
+prefix = 123
+id_len = 48
+ttl = 604800
+population = { per = "accounts", factor = 2.0, min = 5000 }
+popularity = "zipf:0.99"
+value = { dist = "log-uniform", min = 65536, max = 1048576 }
